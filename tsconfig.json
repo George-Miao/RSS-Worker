@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "module": "commonjs",
+    "target": "ES2018",
+    "lib": ["esnext", "webworker"],
+    "alwaysStrict": true,
+    "strict": true,
+    "preserveConstEnums": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "types": ["@cloudflare/workers-types"],
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "resolveJsonModule": true
+  },
+  "include": [
+    "./src/*.ts",
+    "./src/**/*.ts",
+    "./node_modules/@cloudflare/workers-types/index.d.ts"
+  ],
+  "exclude": ["node_modules/", "dist/"]
+}

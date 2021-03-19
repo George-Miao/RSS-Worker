@@ -1,0 +1,30 @@
+{
+  "name": "rss",
+  "version": "1.0.0",
+  "description": "RSS generator on Cloudflare Worker",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "dev": "wrangler dev -e dev",
+    "clean": "rimraf ./dist ./worker",
+    "clean:all": "yarn clean & rimraf node_modules"
+  },
+  "author": "George Miao <gm@miao.dev>",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^2.0.0",
+    "@types/chai": "^4.2.11",
+    "@types/mocha": "^7.0.2",
+    "prettier": "^2.0.5",
+    "rimraf": "^3.0.2",
+    "service-worker-mock": "^2.0.5",
+    "ts-loader": "^7.0.5",
+    "typescript": "^3.9.5",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "@cfworker/web": "^1.6.8",
+    "feed": "^4.2.2"
+  }
+}
