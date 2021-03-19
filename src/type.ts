@@ -11,7 +11,11 @@ export type OmitFn<T> = Omit<T, FnKeys<T>>
 export type Fetcher = (ctx: Context) => Feed
 
 // Route = [RequestedPath, FetcherPath, RequestSchema?]
-export type Route = [string, () => Promise<Fetcher>, RequestSchemas?]
+export type Route = [
+  string,
+  () => Promise<{ default: Fetcher }>,
+  RequestSchemas?,
+]
 
 // Will be used in KV storage
 export type SerializedFeed = OmitFn<RawFeed>

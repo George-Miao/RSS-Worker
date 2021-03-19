@@ -36,7 +36,7 @@ const RSSRouteFactory: (route: Route) => Middleware = route => async ctx => {
     feed = new Feed({ title: 'test_test' }, contentInKV)
   } else {
     console.log('No cached content, fetching')
-    feed = await route[1]().then(e => e(ctx))
+    feed = await route[1]().then(e => e.default(ctx))
     if (!(ENV === 'dev') || config.alwaysCache) {
       console.log(`Content ${key} has been cached into KV`)
       await FEED.put(key, JSON.stringify(feed.serialize()), {
