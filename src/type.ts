@@ -1,26 +1,49 @@
 import { Feed as RawFeed, FeedOptions as RawFeedOptions } from 'feed'
 import { Context, RequestSchemas } from '@cfworker/web'
-import Feed from './feed/feed'
+import RSSFeed from './app/feed'
 
-export type FnKeys<T> = {
-  [P in keyof T]: T[P] extends Function ? P : never
+export type NumStr = string | number
+
+export type PickType<T, Picked> = {
+  [P in keyof T]: T[P] extends Picked ? P : never
 }[keyof T]
+
+export type FnKeys<T> = PickType<T, Function>
 
 export type OmitFn<T> = Omit<T, FnKeys<T>>
 
-export type Fetcher = (ctx: Context) => Feed
+/**
+ * @description Function used to fetch contents from various source
+ */
+export type Fetcher = (ctx: Context) => RSSFeed | PromiseLike<RSSFeed>
 
-// Route = [RequestedPath, FetcherPath, RequestSchema?]
-export type Route = [
-  string,
-  () => Promise<{ default: Fetcher }>,
-  RequestSchemas?,
-]
+export interface Route {
+  path: string
+  fetch: Fetcher
+  schema?: RequestSchemas
+  init?: RouteInit
+}
+
+export interface RouteInit {
+  expirationTTL?: NumStr
+  expiration?: NumStr
+}
 
 // Will be used in KV storage
 export type SerializedFeed = OmitFn<RawFeed>
 
-export interface FeedOptions extends Partial<RawFeedOptions> {
+export type FeedInit =
+  | {
+      base?: SerializedFeed
+      option: RSSFeedOptions
+    }
+  | {
+      base: SerializedFeed
+      option?: Partial<RSSFeedOptions>
+    }
+
+export interface RSSFeedOptions extends Partial<RawFeedOptions> {
+  link: string
   title: string
 }
 
@@ -29,3 +52,5 @@ export enum RSSType {
   ATOM = 'atom',
   JSON = 'json',
 }
+
+export enum CachePolicy {}

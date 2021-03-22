@@ -6,6 +6,9 @@
   "scripts": {
     "build": "webpack",
     "dev": "wrangler dev -e dev",
+    "dev:log": "wrangler dev -e dev | grep -Po --color=never \"Some\\(String\\(\\\"\\K.*(?=\\\"\\)\\))\"",
+    "test": "wrangler dev",
+    "test:log": "wrangler dev | grep -Po --color=never \"Some\\(String\\(\\\"\\K.*(?=\\\"\\)\\))\"",
     "clean": "rimraf ./dist ./worker",
     "clean:all": "yarn clean & rimraf node_modules"
   },
@@ -25,6 +28,7 @@
   },
   "dependencies": {
     "@cfworker/web": "^1.6.8",
-    "feed": "^4.2.2"
+    "feed": "^4.2.2",
+    "newrelic": "^7.1.3"
   }
 }

@@ -1,9 +1,17 @@
-import app from '@/feed/app'
+import app from '@/app/app'
+import test from '@/test'
 
 // Handle cron jobs
 addEventListener('scheduled', event => {
   // event.waitUntil(handleCrontab())
 })
 
-// Handle request
-app.listen()
+if (ENV === 'test') {
+  // Handle cron jobs
+  addEventListener('fetch', event => {
+    event.respondWith(test(event))
+  })
+} else {
+  // Handle request
+  app.listen()
+}
