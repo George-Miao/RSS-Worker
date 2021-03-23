@@ -1,5 +1,5 @@
 import config from '@/config'
-import { Route, RSSType, SerializedFeed } from '@/type'
+import { Route, RSSType, SerializedFeed } from '@/common/type'
 import { Context, Middleware } from '@cfworker/web'
 import RSSFeed from './feed'
 
@@ -19,7 +19,7 @@ export const getFeed = async (route: Route, ctx: Context) => {
     console.log(`Content ${key} has been cached into KV`)
   }
 
-  if (!config.cache?.noCache) {
+  if (!config.cache?.noCache && ENV !== 'dev') {
     const contentInKVStr = (await FEED.get(key)) ?? undefined
     if (contentInKVStr) {
       const contentInKV = JSON.parse(contentInKVStr, (k, v) => {
@@ -39,11 +39,13 @@ export const getFeed = async (route: Route, ctx: Context) => {
         "Cache is enabled, however there's no cached content found, fetching",
       )
       feed = await route.fetch(ctx)
+      console.log('Fetcher returned')
       if (ENV !== 'dev' && !config.cache?.noCache) await cacheContent(feed)
     }
   } else {
     console.log('Cache has been disabled, fetching')
     feed = await route.fetch(ctx)
+    console.log('Fetcher returned')
   }
   return feed
 }

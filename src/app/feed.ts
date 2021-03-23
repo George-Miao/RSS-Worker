@@ -1,6 +1,6 @@
 import { Feed as RawFeed, FeedOptions } from 'feed'
 
-import { SerializedFeed, FeedInit } from '@/type'
+import { SerializedFeed, FeedInit } from '@/common/type'
 import config from '@/config'
 
 export default class RSSFeed extends RawFeed {

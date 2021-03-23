@@ -1,12 +1,11 @@
 export interface ZfrontierUserFlow {
   data: {
-    list: Array<Flow> | []
+    list: Array<UserFlow> | []
   }
   msg: string
   ok: number
 }
-
-export interface Flow {
+export interface UserFlow {
   canTranslate: boolean
   cid: number
   circle: Circle
@@ -14,10 +13,10 @@ export interface Flow {
   created_at: string
   flow_type: number
   great: number
-  hasLongTranslation: boolean
-  hasTranslation: boolean
   has_zan: number
   hash_id: string
+  hasLongTranslation: boolean
+  hasTranslation: boolean
   hot: number
   id: number
   imgs: string[]
@@ -38,6 +37,15 @@ export interface Flow {
   view_url: string
 }
 
+export interface TagFlow extends UserFlow {
+  is_recommended?: number
+  manage_menu: any[]
+  translateFrom?: string
+  translateId?: number
+  translateTo?: string
+  translationIsManual?: number
+}
+
 export interface Circle {
   canTranslate: boolean
   hasLongTranslation: boolean
@@ -50,7 +58,7 @@ export interface Circle {
 }
 
 export interface MasonryCover {
-  f: string
+  f: ImageFormat
   h: number
   src: string
   w: number
@@ -78,4 +86,14 @@ export interface User {
   id: number
   nickname: string
   view_url: string
+}
+
+export enum ClientStr {
+  Web = 'PC网页端',
+  MiniApp = '微信小程序',
+}
+
+export enum ImageFormat {
+  JPEG = 'jpeg',
+  PNG = 'png',
 }

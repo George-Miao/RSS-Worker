@@ -1,4 +1,4 @@
-import { RSSFeedOptions, NumStr } from '@/type'
+import { RSSFeedOptions, NumStr } from '@/common/type'
 
 export interface Config {
   /**

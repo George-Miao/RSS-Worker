@@ -1,5 +1,5 @@
 import app from '@/app/app'
-import test from '@/test'
+import test from '@/common/test'
 
 // Handle cron jobs
 addEventListener('scheduled', event => {

@@ -1,4 +1,4 @@
-import { log } from '@/toolkit'
+import { log } from '@/common/toolkit'
 import { Application, validate } from '@cfworker/web'
 
 import router from './router'

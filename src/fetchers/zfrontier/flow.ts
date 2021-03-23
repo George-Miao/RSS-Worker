@@ -1,15 +1,16 @@
 import { Author } from 'feed'
+import { HttpError } from '@cfworker/web'
 
 import RSSFeed from '@/app/feed'
 import {
   defineRoute,
   FetchError,
-  fetchJSON,
   formatURL,
   genFeedLinks,
-} from '@/toolkit'
+} from '@/common/toolkit'
+import Req from '@/common/req'
+
 import { ZfrontierUserFlow } from './type'
-import { HttpError } from '@cfworker/web'
 
 export default defineRoute({
   path: '/zfrontier/user/:userId',
@@ -42,25 +43,25 @@ export default defineRoute({
     reqForm.append('page', page)
     reqForm.append('uid', userId)
 
-    const data = await fetchJSON<ZfrontierUserFlow>(
-      'https://www.zfrontier.com/v2/user/flow',
-      {
-        headers: {
-          'X-CSRF-TOKEN': '1616007892f453cdd0eb3134a59ed867faa7d82a',
-        },
-        method: 'POST',
-        body: reqForm,
-      },
-    ).then(e => {
-      if (e.data.ok != 0)
-        throw new FetchError(
-          `Error: Zfrontier API returns "${e.data.ok}" instead of "0" as ok. Message: "${e.data.msg}"`,
-        )
-      const list = e.data.data.list
-      if (list.length == 0)
-        throw new HttpError(404, `Cannot find user id ${userId}`)
-      return list
-    })
+    const data = await Req.post('https://www.zfrontier.com/v2/user/flow')
+      .set('headers', {
+        'X-CSRF-TOKEN': '1616007892f453cdd0eb3134a59ed867faa7d82a',
+      })
+      .load(reqForm)
+      .json<ZfrontierUserFlow>()
+      .then(e => {
+        if (e.ok != 0)
+          throw new FetchError(
+            `Error: Zfrontier API returns "${e.ok}" instead of "0" as ok. Message: "${e.msg}"`,
+          )
+        const list = e.data.list
+        if (list.length == 0)
+          throw new HttpError(
+            404,
+            `Cannot find user id ${userId} or cannot find any content`,
+          )
+        return list
+      })
 
     const user = data[0].user
 

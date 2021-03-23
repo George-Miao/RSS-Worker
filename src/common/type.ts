@@ -1,6 +1,6 @@
 import { Feed as RawFeed, FeedOptions as RawFeedOptions } from 'feed'
 import { Context, RequestSchemas } from '@cfworker/web'
-import RSSFeed from './app/feed'
+import RSSFeed from '../app/feed'
 
 export type NumStr = string | number
 
@@ -54,3 +54,11 @@ export enum RSSType {
 }
 
 export enum CachePolicy {}
+
+export type Info = Request | URL | string
+
+export type Init = Omit<RequestInit, 'method' | 'body'>
+
+export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
+
+export type ErrorHandler = <E extends Error>(e: E) => any

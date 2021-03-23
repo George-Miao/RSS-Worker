@@ -29,6 +29,7 @@
   "dependencies": {
     "@cfworker/web": "^1.6.8",
     "feed": "^4.2.2",
+    "ky": "^0.27.0",
     "newrelic": "^7.1.3"
   }
 }

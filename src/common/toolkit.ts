@@ -1,6 +1,7 @@
 import { Context } from '@cfworker/web'
 import config from '@/config'
-import { RSSFeedOptions, Route } from '@/type'
+import { RSSFeedOptions, Route } from '@/common/type'
+import { Feed } from 'feed'
 
 export class FetchError extends Error {
   constructor(message?: string) {
@@ -14,28 +15,6 @@ export class NotFoundFetchError extends FetchError {
     super(message)
     this.name = 'NotFoundFetchError'
   }
-}
-
-export const fetchJSON = async <T = Object>(
-  url: string,
-  init?: RequestInit,
-) => {
-  await log(`Requesting ${url} with ${JSON.stringify(init)}`)
-  return await fetch(url, {
-    headers: {
-      'User-Agent': config.userAgent,
-    },
-    ...init,
-  })
-    .then(async e => {
-      return {
-        data: await e.json().then(e => e as T),
-        res: e,
-      }
-    })
-    .catch(e => {
-      throw new FetchError(`Error while fetching ${url}: ${e}`)
-    })
 }
 
 export const formatURL = (url: string, base?: string | URL) => {
@@ -97,3 +76,5 @@ export const genRandomStr = () => Math.random().toString(36).slice(2)
 export const define = <T>(x: T) => x
 
 export const defineRoute = (route: Route) => route
+
+export const defineRoutes = (routes: Route[]) => routes
