@@ -17,6 +17,16 @@ export type OmitFn<T> = Omit<T, FnKeys<T>>
  */
 export type Fetcher = (ctx: Context) => RSSFeed | PromiseLike<RSSFeed>
 
+export enum Changefreq {
+  Always = 'always',
+  Hourly = 'hourly',
+  Daily = 'daily',
+  Weekly = 'weekly',
+  Monthly = 'monthly',
+  Yearly = 'yearly',
+  Never = 'never'
+}
+
 export interface Route {
   path: string
   fetch: Fetcher
@@ -27,6 +37,7 @@ export interface Route {
 export interface RouteInit {
   expirationTTL?: NumStr
   expiration?: NumStr
+  changefreq?: Changefreq
 }
 
 // Will be used in KV storage
@@ -50,7 +61,7 @@ export interface RSSFeedOptions extends Partial<RawFeedOptions> {
 export enum RSSType {
   RSS = 'rss',
   ATOM = 'atom',
-  JSON = 'json',
+  JSON = 'json'
 }
 
 export enum CachePolicy {}
@@ -62,3 +73,10 @@ export type Init = Omit<RequestInit, 'method' | 'body'>
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD'
 
 export type ErrorHandler = <E extends Error>(e: E) => any
+
+export interface SitemapItem {
+  loc: string
+  lastmod?: Date
+  changefreq?: Changefreq
+  priority?: number
+}

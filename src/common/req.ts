@@ -1,4 +1,4 @@
-import { HttpError } from '@cfworker/web'
+import { ZfrontierPostContent } from '@/fetchers/zfrontier/type'
 import { FetchError } from './toolkit'
 
 import { Info, Init, ErrorHandler, Method } from './type'
@@ -103,7 +103,7 @@ export default class Req {
       | Init
       | ((req: Req) => Init)
       | ((req: Req) => Promise<Init>)
-      | undefined,
+      | undefined
   ): Req {
     if (init instanceof Function) {
       const called = init(this)
@@ -124,7 +124,7 @@ export default class Req {
       | BodyInit
       | ((req: Req) => BodyInit)
       | ((req: Req) => Promise<BodyInit>)
-      | undefined,
+      | undefined
   ): Req {
     if (bodyInit instanceof Function) {
       const called = bodyInit(this)
@@ -153,13 +153,12 @@ export default class Req {
     console.log(`[Req] Firing up <=> ${this.url}`)
     console.debug(`[Req] Init: `, this.reqInit)
     const res = await fetch(this.reqInfo, this.reqInit)
-    console.debug(`[Req] Result: `, res)
-    console.log(`[Req] fetch returned ${res.status}`)
+    console.log(`[Req] fetch returned ${res.status}: ${res.statusText}`)
     if (!res.ok || res.status >= 300 || res.status < 200)
       this.handleError(
         new FetchError(
-          `HTTP request returned with status ${res.status}: ${res.statusText}`,
-        ),
+          `HTTP request returned with status ${res.status}: ${res.statusText}`
+        )
       )
     return res
   }

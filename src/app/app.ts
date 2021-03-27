@@ -1,4 +1,3 @@
-import { log } from '@/common/toolkit'
 import { Application, validate } from '@cfworker/web'
 
 import router from './router'
@@ -9,13 +8,13 @@ app
     validate({
       search: {
         properties: {
-          type: {
+          format: {
             type: 'string',
-            enum: ['json', 'atom', 'rss'],
-          },
-        },
-      },
-    }),
+            enum: ['json', 'atom', 'rss']
+          }
+        }
+      }
+    })
   )
   .use(router.middleware)
 

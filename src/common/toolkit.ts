@@ -1,7 +1,8 @@
 import { Context } from '@cfworker/web'
+
 import config from '@/config'
-import { RSSFeedOptions, Route } from '@/common/type'
-import { Feed } from 'feed'
+import { Route } from './type'
+import Req from './req'
 
 export class FetchError extends Error {
   constructor(message?: string) {
@@ -10,10 +11,10 @@ export class FetchError extends Error {
   }
 }
 
-export class NotFoundFetchError extends FetchError {
+export class FetchNotFoundError extends FetchError {
   constructor(message?: string) {
     super(message)
-    this.name = 'NotFoundFetchError'
+    this.name = 'FetchNotFoundError'
   }
 }
 
@@ -22,6 +23,7 @@ export const formatURL = (url: string, base?: string | URL) => {
     url = decodeURI(url)
     if (typeof base === 'string') base = decodeURI(base)
     if (/^\/\//.test(url)) url = 'https:' + url
+    console.log(url)
     const newUrl = new URL(url, base)
     newUrl.protocol = 'https'
     return newUrl.toString()
@@ -37,21 +39,21 @@ export const log = (msg: string, others?: Record<string, string>) => {
   fetch('https://log-api.newrelic.com/log/v1', {
     headers: {
       'X-License-Key': config.newrelic.licenseKey,
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       ...others,
       message: msg,
       timestamp: +new Date() / 1000,
-      logtype: 'RSS',
+      logtype: 'RSS'
     }),
-    method: 'POST',
+    method: 'POST'
   })
     .then(async e => {
       console.log(
         e.status >= 200 && e.status < 300
           ? 'Done logging'
-          : `Http error <${e.status}>[${await e.text()}] @ logging ${msg}`,
+          : `Http error <${e.status}>[${await e.text()}] @ logging ${msg}`
       )
     })
     .catch(e => console.log(`Internal error ${e} @ logging ${msg}`))
@@ -61,13 +63,13 @@ export const genFeedLinks = (ctx: Context) => {
   const baseURL = new URL(ctx.req.url.pathname, config.basePath)
   baseURL.searchParams.set(
     'type',
-    ctx.req.url.searchParams.get('type') ?? 'atom',
+    ctx.req.url.searchParams.get('type') ?? 'atom'
   )
   const strLink = baseURL.toString()
   console.log(strLink)
   return {
     feed: strLink,
-    link: strLink,
+    link: strLink
   }
 }
 
@@ -78,3 +80,11 @@ export const define = <T>(x: T) => x
 export const defineRoute = (route: Route) => route
 
 export const defineRoutes = (routes: Route[]) => routes
+
+export const clog = (e: any) => {
+  if (e instanceof String) console.log(e)
+  else console.log(JSON.stringify(e))
+  return e
+}
+
+export { Req }

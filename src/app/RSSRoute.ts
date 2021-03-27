@@ -1,7 +1,8 @@
 import config from '@/config'
-import { Route, RSSType, SerializedFeed } from '@/common/type'
+import { Route, RSSType } from '@/common/type'
 import { Context, Middleware } from '@cfworker/web'
 import RSSFeed from './feed'
+import { log } from '@/common/toolkit'
 
 export const getFeed = async (route: Route, ctx: Context) => {
   const pathname = ctx.req.url.pathname
@@ -14,7 +15,7 @@ export const getFeed = async (route: Route, ctx: Context) => {
     await FEED.put(key, JSON.stringify(feed.serialize()), {
       expirationTtl:
         route.init?.expirationTTL ?? config.cache?.expirationTTL ?? 60 * 60,
-      expiration: route.init?.expiration ?? config.cache?.expiration ?? 60 * 60,
+      expiration: route.init?.expiration ?? config.cache?.expiration ?? 60 * 60
     })
     console.log(`Content ${key} has been cached into KV`)
   }
@@ -26,7 +27,7 @@ export const getFeed = async (route: Route, ctx: Context) => {
         if (typeof k !== 'string') return v
         if (
           /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*))(?:Z|(\+|-)([\d|:]*))?$/.test(
-            v,
+            v
           )
         )
           return new Date(v)
@@ -36,7 +37,7 @@ export const getFeed = async (route: Route, ctx: Context) => {
       feed = new RSSFeed({ base: contentInKV })
     } else {
       console.log(
-        "Cache is enabled, however there's no cached content found, fetching",
+        "Cache is enabled, however there's no cached content found, fetching"
       )
       feed = await route.fetch(ctx)
       console.log('Fetcher returned')
@@ -71,20 +72,30 @@ export const getContentType = (rssType: RSSType) => {
   return {
     atom: 'application/xml; charset=utf-8',
     rss: 'application/xml; charset=utf-8',
-    json: 'application/json; charset=utf-8',
+    json: 'application/json; charset=utf-8'
   }[rssType]
 }
 
-export const getRSSRouteMiddleware: (
-  route: Route,
+export const logMiddleware: Middleware = async (ctx, next) => {
+  log(`Income request for ${ctx.req.url.pathname}`)
+  await next()
+  log(
+    `Handled request for ${ctx.req.url.pathname}. Status: [${
+      ctx.res.status
+    }] ${JSON.stringify(ctx.res.body)}`
+  )
+}
+
+export const RSSRouteMiddlewareFactory: (
+  route: Route
 ) => Middleware = route => async ctx => {
   const rssType = getRSSType(ctx) ?? RSSType.ATOM
   const feed = await getFeed(route, ctx)
   ctx.respondWith(
     new Response(getContent(feed, rssType), {
       headers: {
-        'Content-Type': getContentType(rssType),
-      },
-    }),
+        'Content-Type': getContentType(rssType)
+      }
+    })
   )
 }
