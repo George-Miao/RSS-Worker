@@ -3,7 +3,6 @@ import { js2xml, ElementCompact } from 'xml-js'
 
 import { Changefreq, Route, SitemapItem } from '@/common/type'
 import config from '@/config'
-import { clog } from '@/common/toolkit'
 
 export const genXML = (urls: SitemapItem[]) => {
   const base: ElementCompact = {
@@ -11,20 +10,24 @@ export const genXML = (urls: SitemapItem[]) => {
     urlset: {
       _attributes: { xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9' },
       url: urls.map(e => {
-        return {
+        const ret: any = {
           loc: {
-            _text: e.loc
-          },
-          lastmod: e.lastmod && {
-            _text: e.lastmod.toDateString()
-          },
-          changefreq: {
-            _text: e.changefreq
-          },
-          priority: {
-            _text: e.priority
+            _text: e.loc.replace(/(?<=\/):[a-zA-Z]+?(?=(\/|$))/, '0')
           }
         }
+        if (e.lastmod)
+          ret.lastmod = {
+            _text: e.lastmod.toISOString().slice(0, 10)
+          }
+        if (e.changefreq)
+          ret.changefreq = {
+            _text: e.changefreq
+          }
+        if (e.priority)
+          ret.priority = {
+            _text: e.priority
+          }
+        return ret
       })
     }
   }
@@ -38,14 +41,14 @@ export const sitemapMiddlewareFactory: (
     ...routes.map(e => {
       return {
         loc: config.basePath + e.path,
-        changefreq: e.init?.changefreq ?? Changefreq.Daily,
+        changefreq: e.about?.changefreq,
         lastmod: new Date(), // TODO: use lastmod in metadata
         priority: 0.4
       }
     })
   ]
   ctx.respondWith(
-    new Response(clog(genXML(urls)), {
+    new Response(genXML(urls), {
       headers: {
         'Content-type': 'application/xml; charset="utf-8"'
       }

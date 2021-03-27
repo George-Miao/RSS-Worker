@@ -4,20 +4,6 @@ import config from '@/config'
 import { Route } from './type'
 import Req from './req'
 
-export class FetchError extends Error {
-  constructor(message?: string) {
-    super(message)
-    this.name = 'FetchError'
-  }
-}
-
-export class FetchNotFoundError extends FetchError {
-  constructor(message?: string) {
-    super(message)
-    this.name = 'FetchNotFoundError'
-  }
-}
-
 export const formatURL = (url: string, base?: string | URL) => {
   try {
     url = decodeURI(url)
@@ -28,43 +14,44 @@ export const formatURL = (url: string, base?: string | URL) => {
     newUrl.protocol = 'https'
     return newUrl.toString()
   } catch (e) {
-    console.log(url.toString())
-    throw new Error(`Error formatting url: ${e}`)
+    console.error(`Error formatting url ${e}`, url.toString(), base?.toString())
+    return url.toString()
   }
 }
 
-export const log = (msg: string, others?: Record<string, string>) => {
+export const log = (
+  msg: string,
+  newrelic = true,
+  others?: Record<string, string>
+) => {
   console.log(msg)
-  if (!config.newrelic) return
-  fetch('https://log-api.newrelic.com/log/v1', {
-    headers: {
-      'X-License-Key': config.newrelic.licenseKey,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      ...others,
-      message: msg,
-      timestamp: +new Date() / 1000,
-      logtype: 'RSS'
-    }),
-    method: 'POST'
-  })
-    .then(async e => {
-      console.log(
-        e.status >= 200 && e.status < 300
-          ? 'Done logging'
-          : `Http error <${e.status}>[${await e.text()}] @ logging ${msg}`
-      )
+  if (newrelic && config.newrelic?.enabled)
+    fetch('https://log-api.newrelic.com/log/v1', {
+      headers: {
+        'X-License-Key': config.newrelic.licenseKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ...others,
+        message: msg,
+        timestamp: +new Date() / 1000,
+        logtype: 'RSS'
+      }),
+      method: 'POST'
     })
-    .catch(e => console.log(`Internal error ${e} @ logging ${msg}`))
+      .then(async e => {
+        console.log(
+          e.status >= 200 && e.status < 300
+            ? 'Done logging'
+            : `Http error <${e.status}>[${await e.text()}] @ logging ${msg}`
+        )
+      })
+      .catch(e => console.log(`Internal error ${e} @ logging ${msg}`))
+  return msg
 }
 
 export const genFeedLinks = (ctx: Context) => {
   const baseURL = new URL(ctx.req.url.pathname, config.basePath)
-  baseURL.searchParams.set(
-    'type',
-    ctx.req.url.searchParams.get('type') ?? 'atom'
-  )
   const strLink = baseURL.toString()
   console.log(strLink)
   return {
@@ -77,14 +64,8 @@ export const genRandomStr = () => Math.random().toString(36).slice(2)
 
 export const define = <T>(x: T) => x
 
-export const defineRoute = (route: Route) => route
+export const defineRoute = <Path extends string>(route: Route<Path>) => route
 
 export const defineRoutes = (routes: Route[]) => routes
-
-export const clog = (e: any) => {
-  if (e instanceof String) console.log(e)
-  else console.log(JSON.stringify(e))
-  return e
-}
 
 export { Req }

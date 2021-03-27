@@ -1,28 +1,23 @@
 import { Feed as RawFeed, FeedOptions } from 'feed'
 
-import { SerializedFeed, FeedInit } from '@/common/type'
+import {
+  SerializedFeed,
+  FeedInit,
+  RSSFormat,
+  RSSFeedOptions
+} from '@/common/type'
 import config from '@/config'
 
 export default class RSSFeed extends RawFeed {
   // Option priority: content(serialized data) > option passed in > base option
-  constructor(init: FeedInit) {
-    init.option = init.option ?? {}
-    const id =
-        init.base?.options.id ??
-        init.base?.options.link ??
-        init.option.link ??
-        BASE ??
-        'https://rss.miao.dev/',
-      copyright =
-        init.base?.options.copyright ??
-        init.option.copyright ??
-        BASE ??
-        'https://rss.miao.dev/'
-    if (init.base) {
-      super({ ...config.feed, ...init.option, ...init.base.options })
-      Object.assign(this, init.base)
+  constructor(option?: RSSFeedOptions, base?: SerializedFeed) {
+    if (base) {
+      super({ ...config.feed, ...base.options, ...option })
+      Object.assign(this, base)
     } else {
-      super({ ...config.feed, ...init.option, id, copyright } as FeedOptions)
+      const id = option?.link ?? config.basePath
+      const copyright = option?.copyright ?? config.basePath
+      super({ ...config.feed, ...option, id, copyright } as FeedOptions)
     }
   }
 
@@ -32,7 +27,20 @@ export default class RSSFeed extends RawFeed {
       options: this.options,
       contributors: this.contributors,
       extensions: this.extensions,
-      items: this.items,
+      items: this.items
+    }
+  }
+
+  public content(type: RSSFormat) {
+    switch (type) {
+      case RSSFormat.JSON:
+        return this.json1()
+      case RSSFormat.RSS:
+        return this.rss2()
+      case RSSFormat.ATOM:
+        return this.atom1()
+      default:
+        return this.atom1()
     }
   }
 }

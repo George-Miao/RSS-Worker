@@ -1,5 +1,5 @@
 import { ZfrontierPostContent } from '@/fetchers/zfrontier/type'
-import { FetchError } from './toolkit'
+import { FetchInternalError, FetchSourceError } from './toolkit'
 
 import { Info, Init, ErrorHandler, Method } from './type'
 
@@ -155,11 +155,7 @@ export default class Req {
     const res = await fetch(this.reqInfo, this.reqInit)
     console.log(`[Req] fetch returned ${res.status}: ${res.statusText}`)
     if (!res.ok || res.status >= 300 || res.status < 200)
-      this.handleError(
-        new FetchError(
-          `HTTP request returned with status ${res.status}: ${res.statusText}`
-        )
-      )
+      this.handleError(new FetchSourceError(`${res.status}: ${res.statusText}`))
     return res
   }
 

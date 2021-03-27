@@ -1,17 +1,9 @@
-import app from '@/app/app'
-import test from '@/common/test'
+import app from '@/app'
+import handleUpdate from '@/app/update'
 
 // Handle cron jobs
-addEventListener('scheduled', event => {
-  // event.waitUntil(handleCrontab())
-})
+// addEventListener('scheduled', event => {
+//   event.waitUntil(handleUpdate())
+// })
 
-if (ENV === 'test') {
-  // Handle cron jobs
-  addEventListener('fetch', event => {
-    event.respondWith(test(event))
-  })
-} else {
-  // Handle request
-  app.listen()
-}
+app.listen()

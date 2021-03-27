@@ -23,7 +23,6 @@ routes.forEach(route => {
   }
   middlewares.push(RSSRouteMiddlewareFactory(route))
   router.get(route.path, ...middlewares)
-  console.log(`Done initializing GET middleware for ${route.path}`)
 })
 
 export default router

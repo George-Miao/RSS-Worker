@@ -1,14 +1,9 @@
 import RSSFeed from '@/app/feed'
 import Req from '@/common/req'
-import {
-  defineRoute,
-  genFeedLinks,
-  FetchError,
-  formatURL
-} from '@/common/toolkit'
-import { Item } from 'feed'
-import { basePath, checkAPI as checkZfrontierAPI, reqInit } from './common'
-import { ZfrontierTagFlow, ZfrontierPostContent, TagFlow } from './type'
+import { defineRoute, genFeedLinks } from '@/common/toolkit'
+import { FetchNotFoundError } from '@/common/error'
+import { basePath, checkAPI, fetchContents, reqInit } from './common'
+import { ZfrontierTagFlow, TagFlow } from './type'
 
 export default defineRoute({
   path: '/zfrontier/list/:tagId',
@@ -28,8 +23,6 @@ export default defineRoute({
     const { tagId } = ctx.req.params
     const page = ctx.req.url.searchParams.get('page') ?? '1'
 
-    const replaceGroup = /src=\"\/\//g
-
     const data = await Req.post(`${basePath}/v2/home/flow/list`)
       .with(reqInit)
       .load(() => {
@@ -40,10 +33,10 @@ export default defineRoute({
       })
       .json<ZfrontierTagFlow>()
       .then(e => {
-        checkZfrontierAPI(e)
+        checkAPI(e)
         const list = e.data.list
         if (list.length == 0) {
-          throw new FetchError(
+          throw new FetchNotFoundError(
             `Cannot find tag id ${tagId} or the API does not return any content`
           )
         }
@@ -51,48 +44,16 @@ export default defineRoute({
       })
 
     const feed = new RSSFeed({
-      option: {
-        ...genFeedLinks(ctx),
-        title: `Zfrontier #${tagId.toUpperCase()}`,
-        description: `Zfrontier #${tagId.toUpperCase()} 下的更新`
-      }
+      ...genFeedLinks(ctx),
+      title: `Zfrontier #${tagId.toUpperCase()}`,
+      description: `Zfrontier #${tagId.toUpperCase()} 下的更新`
     })
-
-    const contentReqs: Promise<Item>[] = []
-
-    for (const e of data) {
-      contentReqs.push(
-        Req.post(`${basePath}/api/circle/flow/${e.view_url.split('/').pop()}`)
-          .with(reqInit)
-          .json<ZfrontierPostContent>()
-          .then(checkZfrontierAPI)
-          .then(e => e.data.flow)
-          .then(e => {
-            return {
-              title: e.title,
-              date: new Date(e.created_at),
-              link: basePath + e.view_url,
-              description: e.text,
-              image: e.imgs[0]
-                ? {
-                    url: formatURL(e.imgs[0]),
-                    type: 'image/jpeg'
-                  }
-                : undefined,
-              content: e.item?.article?.content?.replaceAll(
-                replaceGroup,
-                'src="https://'
-              )
-            }
-          })
-        // .then(e => e.data)
-      )
-    }
-
-    await Promise.all(contentReqs).then(e => {
-      e.forEach(feed.addItem)
+    const urls: string[] = []
+    data.forEach(e => {
+      const url = e.view_url.split('/').pop()
+      if (url) urls.push(url)
     })
-
+    await fetchContents(urls).then(e => e.forEach(x => feed.addItem(x)))
     return feed
   }
 })

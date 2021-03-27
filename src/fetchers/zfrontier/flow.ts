@@ -1,16 +1,12 @@
 import { Author } from 'feed'
 
 import RSSFeed from '@/app/feed'
-import {
-  defineRoute,
-  FetchError,
-  formatURL,
-  genFeedLinks
-} from '@/common/toolkit'
+import { FetchNotFoundError } from '@/common/error'
+import { defineRoute, formatURL, genFeedLinks } from '@/common/toolkit'
 import Req from '@/common/req'
 
 import { ZfrontierUserFlow } from './type'
-import { basePath, checkAPI, reqInit } from './common'
+import { basePath, checkAPI, fetchContents, reqInit } from './common'
 
 export default defineRoute({
   path: '/zfrontier/user/:userId',
@@ -31,8 +27,7 @@ export default defineRoute({
       }
     }
   },
-  async fetch(ctx) {
-    const { userId } = ctx.req.params
+  async fetch(ctx, { userId }) {
     const page = ctx.req.url.searchParams.get('page') ?? '1'
 
     const feedLinks = genFeedLinks(ctx)
@@ -49,8 +44,8 @@ export default defineRoute({
         checkAPI(e)
         const list = e.data.list
         if (list.length == 0)
-          throw new FetchError(
-            `Cannot find user id ${userId} or cannot find any content`
+          throw new FetchNotFoundError(
+            `Cannot find user id ${userId} or there's no content posted by this user`
           )
         return list
       })
@@ -63,34 +58,20 @@ export default defineRoute({
     }
 
     const feed = new RSSFeed({
-      option: {
-        ...feedLinks,
-        title: `Zfrontier用户"${user.nickname}"的更新`,
-        description: `Zfrontier用户"${user.nickname}"的更新`,
-        favicon: formatURL(user.avatar_path),
-        image: formatURL(data[0].masonry_cover.src),
-        author
-      }
+      ...feedLinks,
+      title: `Zfrontier用户"${user.nickname}"的更新`,
+      description: `Zfrontier用户"${user.nickname}"的更新`,
+      favicon: formatURL(user.avatar_path),
+      image: formatURL(data[0].masonry_cover.src),
+      author
     })
 
+    const urls: string[] = []
     data.forEach(e => {
-      const image = e.masonry_cover
-        ? {
-            url: formatURL(e.masonry_cover?.src),
-            type: 'image/' + e.masonry_cover?.f,
-            length: e.masonry_cover?.h
-          }
-        : undefined
-
-      return feed.addItem({
-        date: new Date(e.created_at),
-        link: formatURL(e.view_url, basePath),
-        title: e.title,
-        description: e.text,
-        author: [author],
-        image
-      })
+      const url = e.view_url.split('/').pop()
+      if (url) urls.push(url)
     })
+    await fetchContents(urls).then(e => e.forEach(x => feed.addItem(x)))
 
     return feed
   }
