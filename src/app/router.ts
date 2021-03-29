@@ -2,7 +2,7 @@ import { Middleware, Router, validate } from '@cfworker/web'
 
 import routes from '@/routes'
 
-import { logMiddleware, RSSRouteMiddlewareFactory } from '@/app/RSSRoute'
+import { logMiddleware, RSSRouteMiddlewareFactory } from '@/app/rss/RSSRoute'
 import { sitemapMiddlewareFactory } from './sitemap'
 
 const robotsTxt = `User-agent: *

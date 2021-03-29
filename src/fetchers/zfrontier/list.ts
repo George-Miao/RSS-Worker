@@ -1,4 +1,4 @@
-import RSSFeed from '@/app/feed'
+import RSSFeed from '@/app/rss/feed'
 import Req from '@/common/req'
 import { defineRoute, genFeedLinks } from '@/common/toolkit'
 import { FetchNotFoundError } from '@/common/error'

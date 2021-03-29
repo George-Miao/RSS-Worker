@@ -1,6 +1,6 @@
 import { Author } from 'feed'
 
-import RSSFeed from '@/app/feed'
+import RSSFeed from '@/app/rss/feed'
 import { FetchNotFoundError } from '@/common/error'
 import { defineRoute, formatURL, genFeedLinks } from '@/common/toolkit'
 import Req from '@/common/req'

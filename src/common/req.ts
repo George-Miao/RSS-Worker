@@ -1,5 +1,4 @@
-import { ZfrontierPostContent } from '@/fetchers/zfrontier/type'
-import { FetchInternalError, FetchSourceError } from './toolkit'
+import { FetchSourceError } from './error'
 
 import { Info, Init, ErrorHandler, Method } from './type'
 
@@ -28,14 +27,16 @@ const deepAssign = (target: Record<string, any>, src: Record<string, any>) => {
   }
 }
 
-const infoToRequestInfo = (info: Info): RequestInfo => {
-  return info instanceof URL ? info.toString() : info
+const infoToRequestInfo = (info: Info): URL => {
+  return info instanceof URL
+    ? info
+    : new URL(typeof info === 'string' ? info : info.url)
 }
 
 export default class Req {
   private reqInit: RequestInit = {}
   private initPromise: Promise<Init> | undefined = undefined
-  private reqInfo: RequestInfo
+  private reqInfo: URL
   private bodyPromise: Promise<BodyInit> | undefined = undefined
   private handleError: ErrorHandler = <E extends Error>(e: E) => {
     console.error(`Error during fetching ${this.url}`, e.stack ?? e.toString())
@@ -66,9 +67,7 @@ export default class Req {
   }
 
   get url(): string {
-    return typeof this.reqInfo === 'string'
-      ? this.reqInfo
-      : this.reqInfo.url.toString()
+    return this.reqInfo.toString()
   }
 
   get get(): Req {
@@ -137,6 +136,14 @@ export default class Req {
     return this
   }
 
+  // add(k: string, v: string): Req
+  // add(paramInit: Record<string, string>): Req
+  // add(paramInit: Record<string, string> | string, v?: string): Req {
+  //   if (typeof paramInit === 'string'){
+  //     this.url.
+  //   }
+  // }
+
   set<K extends keyof Init>(key: K, value: Init[K]): Req {
     this.reqInit[key] = value
     return this
@@ -152,7 +159,7 @@ export default class Req {
     if (this.initPromise) Object.assign(this.reqInit, await this.initPromise)
     console.log(`[Req] Firing up <=> ${this.url}`)
     console.debug(`[Req] Init: `, this.reqInit)
-    const res = await fetch(this.reqInfo, this.reqInit)
+    const res = await fetch(this.url, this.reqInit)
     console.log(`[Req] fetch returned ${res.status}: ${res.statusText}`)
     if (!res.ok || res.status >= 300 || res.status < 200)
       this.handleError(new FetchSourceError(`${res.status}: ${res.statusText}`))
@@ -178,4 +185,37 @@ export default class Req {
   async formData(): Promise<FormData> {
     return await this.fire().then(e => e.formData())
   }
+}
+
+export interface RMInit<T, M> {
+  url: string
+  fn: (url: string) => T | Promise<T>
+  meta: M
+}
+export interface Done<T, M> {
+  url: string
+  data: T
+  meta: M
+}
+
+const wrapReq = async <T, M>(init: RMInit<T, M>): Promise<Done<T, M>> => {
+  return {
+    url: init.url,
+    data: await init.fn(init.url),
+    meta: init.meta
+  }
+}
+
+export const reqMultiple = async <T, M>(
+  inits: RMInit<T, M>[]
+): Promise<[Done<T, M>[], any[]]> => {
+  const done: Done<T, M>[] = []
+  const none: any[] = []
+  await Promise.allSettled(inits.map(wrapReq)).then(r => {
+    r.forEach(res => {
+      if (res.status === 'fulfilled') done.push(res.value)
+      else none.push(res.reason)
+    })
+  })
+  return [done, none]
 }

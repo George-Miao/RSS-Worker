@@ -6,7 +6,7 @@ import {
   FetchNotFoundError,
   FetchSourceError
 } from '@/common/error'
-import { cacheContent } from './cache'
+import { cacheContent } from '../cache'
 import config from '@/config'
 import RSSFeed from './feed'
 import { log } from '@/common/toolkit'
@@ -82,26 +82,39 @@ export const RSSRouteMiddlewareFactory: (
     )
   } catch (e) {
     let resp: Response
+
     if (e instanceof FetchInternalError)
-      resp = new Response(e.message, {
-        status: 500,
-        statusText: e.message
-      })
+      resp = new Response(
+        config.env === 'dev' ? e.message + e.stack : e.message,
+        {
+          status: 500,
+          statusText: 'Internal Error'
+        }
+      )
     else if (e instanceof FetchNotFoundError)
-      resp = new Response(e.message, {
-        status: 404,
-        statusText: e.message
-      })
+      resp = new Response(
+        config.env === 'dev' ? e.message + e.stack : e.message,
+        {
+          status: 404,
+          statusText: 'Not Found'
+        }
+      )
     else if (e instanceof FetchSourceError)
-      resp = new Response(e.message, {
-        status: 404,
-        statusText: e.message
-      })
+      resp = new Response(
+        config.env === 'dev' ? e.message + e.stack : e.message,
+        {
+          status: 404,
+          statusText: 'Fetch Source Error'
+        }
+      )
     else
-      resp = new Response(e.message, {
-        status: 500,
-        statusText: e.message
-      })
+      resp = new Response(
+        config.env === 'dev' ? e.message + e.stack : 'Internal Error',
+        {
+          status: 500,
+          statusText: e.message
+        }
+      )
     ctx.respondWith(resp)
   }
 }

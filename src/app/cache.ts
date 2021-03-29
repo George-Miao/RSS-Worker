@@ -1,6 +1,6 @@
 import { Route } from '@/common/type'
 import config from '@/config'
-import RSSFeed from './feed'
+import RSSFeed from './rss/feed'
 
 export const cacheContent = async (
   route: Route,

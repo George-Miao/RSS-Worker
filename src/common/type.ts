@@ -1,7 +1,7 @@
 import { Feed as RawFeed, FeedOptions as RawFeedOptions } from 'feed'
 import { Context, RequestSchemas } from '@cfworker/web'
 
-import RSSFeed from '@/app/feed'
+import RSSFeed from '@/app/rss/feed'
 
 export type NumStr = string | number
 
