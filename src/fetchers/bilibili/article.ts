@@ -81,6 +81,7 @@ export default defineRoute({
             url: e.meta.image_urls[0]
           },
           date: new Date(e.meta.publish_time * 1000),
+          published: new Date(e.meta.publish_time * 1000),
           title: e.meta.title
         })
       })

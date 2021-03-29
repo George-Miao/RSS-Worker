@@ -32,6 +32,7 @@ export const fetchContents = async (urls: string[]) => {
           return {
             title: e.title,
             date: new Date(e.created_at),
+            published: new Date(e.created_at),
             link: basePath + e.view_url,
             description: e.text,
             image: e.imgs[0]
